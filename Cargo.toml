@@ -2,6 +2,7 @@
 name = "jim"
 authors = [ "Cameron Ward <cameronuward@gmail.com>" ]
 description = "java instance manager"
+license="GPL-3.0"
 version = "0.1.0"
 edition = "2021"
 
