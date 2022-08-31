@@ -2,8 +2,9 @@
 name = "jim"
 authors = [ "Cameron Ward <cameronuward@gmail.com>" ]
 description = "java instance manager"
-license="GPL-3.0"
-version = "0.1.0"
+repository = "https://github.com/camuward/jim"
+license = "GPL-3.0"
+version = "0.2.0"
 edition = "2021"
 
 [dependencies]
@@ -11,4 +12,7 @@ anyhow = "1.0"
 clap = { version = "3.2.18", features = ["derive", "backtrace"] }
 dirs = "4"
 symlink = "0.1"
-fs_extra = "1.2"
+dircpy = "0.3"
+log = "0.4"
+env_logger = "0.9"
+dunce = "1.0"
