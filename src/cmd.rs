@@ -9,10 +9,10 @@ pub use add::*;
 pub use get::*;
 pub use set::*;
 
-pub mod list;
-pub mod add;
-pub mod get;
-pub mod set;
+mod list;
+mod add;
+mod get;
+mod set;
 
 #[derive(Debug, Subcommand)]
 pub enum Command {
