@@ -41,3 +41,9 @@ $ jim list
 graalvm-ee-java8-21.3.3
 openjdk-17.0.1+12
 ```
+
+## how get?
+
+```bash
+$ git clone https://github.com/camuward/jim && cargo install --path jim
+```
