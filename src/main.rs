@@ -116,33 +116,59 @@ fn main() -> anyhow::Result<()> {
             }
         }
         Command::Add { paths } => {
-            for path in paths {
-                let path = dunce::canonicalize(path)?;
-                log::debug!(
-                    "searching for input directory at {}...",
-                    path.to_string_lossy()
-                );
-                anyhow::ensure!(path.try_exists()?, "Input path does not exist");
+            use rayon::prelude::*;
 
-                let name = path
-                    .file_name()
-                    .context("Failed to get instance filename")?;
+            // remove duplicate paths (even through symlinks)
+            let real_paths = paths.par_iter().map(dunce::canonicalize);
+            let file_names = paths.par_iter().map(AsRef::as_ref).map(Path::file_name);
 
-                let instance: PathBuf = path_to_subdir(&base, name);
-                anyhow::ensure!(!instance.try_exists()?, "Instance is already installed");
+            real_paths
+                .zip(file_names)
+                .map(|(path, file_name)| {
+                    use std::time::Instant;
 
-                dircpy::CopyBuilder::new(&path, &instance)
-                    .run()
-                    .with_context(|| {
-                        format!(
-                            "Failed to copy instance from {} to {}",
-                            path.to_string_lossy(),
-                            instance.to_string_lossy()
-                        )
-                    })?;
-            }
+                    let start = Instant::now();
+
+                    let (input_path, file_name) =
+                        (path?, file_name.context("Failed to get input filename")?);
+                    let name = file_name.to_string_lossy();
+
+                    log::debug!(
+                        target: &name,
+                        "searching for input directory at {}...",
+                        input_path.to_string_lossy()
+                    );
+                    anyhow::ensure!(input_path.try_exists()?, "Input path does not exist");
+
+                    let instance: PathBuf = path_to_subdir(&base, &*name);
+                    anyhow::ensure!(!instance.try_exists()?, "Instance is already installed");
+
+                    log::debug!("installing instance {name}");
+                    dircpy::CopyBuilder::new(&input_path, &instance)
+                        .run()
+                        .with_context(|| {
+                            format!(
+                                "Failed to copy instance from {} to {}",
+                                input_path.to_string_lossy(),
+                                instance.to_string_lossy()
+                            )
+                        })?;
+
+                    if atty::is(atty::Stream::Stdout) {
+                        let time = Instant::now().saturating_duration_since(start);
+                        println!(
+                            "successfully installed {} ({}ms)",
+                            name,
+                            humantime::format_duration(time)
+                        );
+                    }
+
+                    Ok(())
+                })
+                .collect::<Result<(), _>>()?;
         }
         Command::Set { instance: name } => {
+            // check instance exists
             log::debug!("searching for {}", name.to_string_lossy());
             let instance = path_to_subdir(&base, &name);
             anyhow::ensure!(
@@ -154,6 +180,7 @@ fn main() -> anyhow::Result<()> {
 
             log::info!("setting current instance to {}", name.to_string_lossy());
 
+            // remove existing symlink at $JIM_DIR/current
             let link = path_to_subdir(base, "current");
             if link.try_exists()? {
                 log::debug!("symlink exists, removing...");
@@ -165,6 +192,8 @@ fn main() -> anyhow::Result<()> {
                 })?;
                 log::trace!("symlink removed");
             }
+
+            // create symlink to instance at $JIM_DIR/current
             log::debug!("creating symlink...");
             symlink::symlink_dir(instance, &link).with_context(|| {
                 format!(

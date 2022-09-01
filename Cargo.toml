@@ -9,11 +9,14 @@ edition = "2021"
 
 [dependencies]
 anyhow = "1.0"
-clap = { version = "3.2.18", features = ["derive", "backtrace"] }
+atty = "0.2"
+clap = { version = "3.2", features = ["derive", "backtrace"] }
 dircpy = "0.3"
 dirs = "4"
 dunce = "1.0"
 env_logger = "0.9"
+humantime = "2.1"
 log = "0.4"
+rayon = "1.5"
 symlink = "0.1"
 wild = "2.1"
