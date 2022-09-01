@@ -1,6 +1,5 @@
-use std::fs;
 use std::ffi::OsString;
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 
 use clap::Subcommand;
 
@@ -33,13 +32,4 @@ pub enum Command {
         #[clap(value_parser)]
         instance: OsString,
     },
-}
-
-pub fn path_to_current_instance(base: impl AsRef<Path>) -> anyhow::Result<Option<PathBuf>> {
-    let link = crate::path_to_subdir(base, "current");
-
-    Ok(link
-        .try_exists()?
-        .then(|| fs::read_link(link))
-        .transpose()?)
 }
