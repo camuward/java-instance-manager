@@ -4,11 +4,12 @@ use std::io::Write;
 use std::path::{Component, Path, PathBuf};
 
 use anyhow::Context;
-use clap::{Parser, Subcommand};
+use clap::{AppSettings, Parser, Subcommand};
 
 #[derive(Debug, Parser)]
 #[clap(author, version, about, long_about = None)]
 #[clap(propagate_version = true)]
+#[clap(global_setting(AppSettings::DisableHelpSubcommand))]
 struct Cli {
     #[clap(subcommand)]
     command: Command,
