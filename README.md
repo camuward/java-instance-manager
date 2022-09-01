@@ -23,8 +23,8 @@ graalvm-ee-java8-21.3.3
 openjdk-17.0.1+12
 
 $ jim add *
-successfully installed .../graalvm-ee-java8-21.3.3 (0.122s)
-successfully installed .../openjdk-17.0.1+12 (0.067s)
+successfully installed graalvm-ee-java8-21.3.3 (722ms)
+successfully installed openjdk-17.0.1+12 (867ms)
 
 $ LOG_LEVEL=DEBUG jim set openjdk-17.0.1+12
 info: starting jim 0.2.0 at .../

@@ -140,7 +140,7 @@ fn main() -> anyhow::Result<()> {
                     );
                     anyhow::ensure!(input_path.try_exists()?, "Input path does not exist");
 
-                    let instance: PathBuf = path_to_subdir(&base, &*name);
+                    let instance: PathBuf = path_to_subdir(&base, file_name);
                     anyhow::ensure!(!instance.try_exists()?, "Instance is already installed");
 
                     log::debug!("installing instance {name}");
@@ -155,11 +155,9 @@ fn main() -> anyhow::Result<()> {
                         })?;
 
                     if atty::is(atty::Stream::Stdout) {
-                        let time = Instant::now().saturating_duration_since(start);
                         println!(
-                            "successfully installed {} ({}ms)",
-                            name,
-                            humantime::format_duration(time)
+                            "successfully installed {name} ({}ms)",
+                            start.elapsed().as_millis(),
                         );
                     }
 
