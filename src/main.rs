@@ -73,7 +73,5 @@ fn main() -> anyhow::Result<()> {
         Command::Get => cmd::get(base),
         Command::Add { paths } => cmd::add(base, &paths),
         Command::Set { instance } => cmd::set(base, &instance),
-    }?;
-
-    Ok(())
+    }
 }

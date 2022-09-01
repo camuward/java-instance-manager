@@ -26,7 +26,6 @@ pub fn set(base: impl AsRef<Path>, name: &OsString) -> anyhow::Result<()> {
                 link.to_string_lossy()
             )
         })?;
-        log::trace!("symlink removed");
     }
 
     // create symlink to instance at $JIM_DIR/current
@@ -36,8 +35,5 @@ pub fn set(base: impl AsRef<Path>, name: &OsString) -> anyhow::Result<()> {
             "Failed to create `current` symlink ({})",
             link.to_string_lossy()
         )
-    })?;
-    log::trace!("symlink created");
-
-    Ok(())
+    })
 }

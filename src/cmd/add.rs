@@ -50,7 +50,5 @@ pub fn add(base: impl AsRef<Path> + Sync, paths: &[PathBuf]) -> anyhow::Result<(
 
             Ok(())
         })
-        .collect::<Result<(), _>>()?;
-
-    Ok(())
+        .collect()
 }
