@@ -52,7 +52,8 @@ fn path_to_current_instance(base: impl AsRef<Path>) -> anyhow::Result<Option<Pat
 }
 
 fn main() -> anyhow::Result<()> {
-    let cli = Cli::parse();
+    let args = wild::args_os();
+    let cli = Cli::parse_from(args);
 
     env_logger::builder()
         .parse_filters(
