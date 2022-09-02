@@ -31,6 +31,7 @@ pub fn add(base: impl AsRef<Path> + Sync, paths: &[PathBuf]) -> anyhow::Result<(
             anyhow::ensure!(!instance.try_exists()?, "Instance is already installed");
 
             log::debug!("installing instance {name}");
+            let copy_start = Instant::now();
             dircpy::CopyBuilder::new(&input_path, &instance)
                 .run()
                 .with_context(|| {
@@ -40,6 +41,11 @@ pub fn add(base: impl AsRef<Path> + Sync, paths: &[PathBuf]) -> anyhow::Result<(
                         instance.to_string_lossy()
                     )
                 })?;
+            log::trace!(
+                "installed {} in {}ms",
+                instance.to_string_lossy(),
+                copy_start.elapsed().as_millis()
+            );
 
             if atty::is(atty::Stream::Stdout) {
                 println!(
