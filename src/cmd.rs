@@ -3,14 +3,14 @@ use std::path::PathBuf;
 
 use clap::Subcommand;
 
-pub use list::*;
 pub use add::*;
 pub use get::*;
+pub use list::*;
 pub use set::*;
 
-mod list;
 mod add;
 mod get;
+mod list;
 mod set;
 
 #[derive(Debug, Subcommand)]
