@@ -1,13 +1,34 @@
+use std::collections::{HashMap, HashSet};
+use std::ffi::OsString;
 use std::path::{Path, PathBuf};
 
 use anyhow::Context;
 
+/// Determine the instance name from an input path.
+///
+/// If `path` points to an archive, the extension is stripped.
+///
+/// If `path` is a directory containing a `bin` subfolder, the instance is
+/// named the same as `path`.
+///
+/// # Usage
+///
+/// ```no_run
+/// let file = "/home/user/Downloads/openjdk-19_linux-x64_bin.tar.gz";
+/// assert_eq!("openjdk-19_linux-x64_bin", get_instance_name(file));
+///
+/// let folder = "/home/user/Desktop/graalvm-ee-java17-22.2.0/";
+/// assert_eq!("graalvm-ee-java17-22.2.0", get_instance_name(folder));
+/// ```
+fn get_instance_name(path: impl AsRef<Path>) -> anyhow::Result<OsString> {}
+
 pub fn add(base: impl AsRef<Path> + Sync, paths: &[PathBuf]) -> anyhow::Result<()> {
     use rayon::prelude::*;
 
-    // remove duplicate paths (even through symlinks)
-    let real_paths = paths.par_iter().map(dunce::canonicalize);
-    let file_names = paths.par_iter().map(AsRef::as_ref).map(Path::file_name);
+    let instance_names: HashSet<OsString> = paths.iter().map(get_instance_name).collect()?;
+
+    // remove duplicate inputs
+    let real_paths: HashSet<_> = paths.par_iter().map(dunce::canonicalize).collect()?;
 
     real_paths
         .zip(file_names)
