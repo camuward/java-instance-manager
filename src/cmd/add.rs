@@ -1,7 +1,8 @@
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
 use std::ffi::OsString;
 use std::io;
 use std::path::{Path, PathBuf};
+use std::time::Instant;
 
 use anyhow::Context;
 
@@ -21,7 +22,7 @@ use anyhow::Context;
 /// let folder = "/home/user/Desktop/graalvm-ee-java17-22.2.0/";
 /// assert_eq!("graalvm-ee-java17-22.2.0", get_instance_name(folder));
 /// ```
-fn get_instance_name(path: impl AsRef<Path>) -> io::Result<OsString> {
+fn get_instance_name(_path: impl AsRef<Path>) -> io::Result<OsString> {
     todo!()
 }
 
@@ -37,58 +38,36 @@ pub fn add(base: impl AsRef<Path> + Sync, paths: &[PathBuf]) -> anyhow::Result<(
         .map(|(name, path)| Ok((name?, path?)))
         .collect::<io::Result<_>>()?;
 
-    fn install_instance((name, path): (OsString, PathBuf)) -> anyhow::Result<()> {
+    let install_instance = |(name, path): (OsString, PathBuf)| -> anyhow::Result<()> {
+        let timer = Instant::now();
+
+        let (name_str, path_str) = (name.to_string_lossy(), path.to_string_lossy());
+        anyhow::ensure!(path.try_exists()?, "Input path does not exist");
+
+        // this is where the instance would go
+        let dest = crate::path_to_subdir(&base, &name);
+        anyhow::ensure!(!dest.try_exists()?, "Instance {name_str} already installed");
+
+        log::debug!("installing instance {name_str}");
+        let copy_timer = Instant::now();
+        dircpy::CopyBuilder::new(&path, &dest)
+            .run()
+            .with_context(|| {
+                format!(
+                    "Failed to copy instance from {path_str} to {}",
+                    dest.to_string_lossy()
+                )
+            })?;
+        let copy_time = copy_timer.elapsed().as_millis();
+        log::trace!("installed {name_str} in {copy_time}ms");
+
+        if atty::is(atty::Stream::Stdout) {
+            let time = timer.elapsed().as_millis();
+            println!("successfully installed {name_str} ({time}ms)");
+        }
+
         Ok(())
-    }
+    };
 
     instances.into_par_iter().map(install_instance).collect()
-
-    // real_paths
-    //     .zip(file_names)
-    //     .map(|(path, file_name)| {
-    //         use std::time::Instant;
-
-    //         let start = Instant::now();
-
-    //         let (input_path, file_name) =
-    //             (path?, file_name.context("Failed to get input filename")?);
-    //         let name = file_name.to_string_lossy();
-
-    //         log::debug!(
-    //             target: &name,
-    //             "searching for input directory at {}...",
-    //             input_path.to_string_lossy()
-    //         );
-    //         anyhow::ensure!(input_path.try_exists()?, "Input path does not exist");
-
-    //         let instance: PathBuf = crate::path_to_subdir(&base, file_name);
-    //         anyhow::ensure!(!instance.try_exists()?, "Instance is already installed");
-
-    //         log::debug!("installing instance {name}");
-    //         let copy_start = Instant::now();
-    //         dircpy::CopyBuilder::new(&input_path, &instance)
-    //             .run()
-    //             .with_context(|| {
-    //                 format!(
-    //                     "Failed to copy instance from {} to {}",
-    //                     input_path.to_string_lossy(),
-    //                     instance.to_string_lossy()
-    //                 )
-    //             })?;
-    //         log::trace!(
-    //             "installed {} in {}ms",
-    //             instance.to_string_lossy(),
-    //             copy_start.elapsed().as_millis()
-    //         );
-
-    //         if atty::is(atty::Stream::Stdout) {
-    //             println!(
-    //                 "successfully installed {name} ({}ms)",
-    //                 start.elapsed().as_millis(),
-    //             );
-    //         }
-
-    //         Ok(())
-    //     })
-    //     .collect()
 }
