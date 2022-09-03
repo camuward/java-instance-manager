@@ -2,21 +2,53 @@ name: Rust
 
 on:
   push:
-    branches: [ "master" ]
   pull_request:
-    branches: [ "master" ]
 
 env:
   CARGO_TERM_COLOR: always
+  CARGO_UNSTABLE_SPARSE_REGISTRY: true
 
 jobs:
-  build:
-
+  build_ubuntu-latest:
     runs-on: ubuntu-latest
-
     steps:
-    - uses: actions/checkout@v3
-    - name: Build
-      run: cargo build --verbose
-    - name: Run tests
-      run: cargo test --verbose
+      - uses: actions/checkout@v3
+      - name: build
+        run: cargo build --verbose
+      - name: test
+        run: cargo test --verbose --all-features
+
+  build_windows-latest:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: build
+        run: cargo build --verbose
+      - name: test
+        run: cargo test --verbose --all-features
+
+  build_macos-latest:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: build
+        run: cargo build --verbose
+      - name: test
+        run: cargo test --verbose --all-features
+
+  # Check formatting with rustfmt
+  formatting:
+    name: cargo fmt
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          toolchain: nightly
+          components: clippy, rustfmt, miri
+      - name: build
+        run: cargo build --verbose
+      - name: fmt check
+        uses: actions-rust-lang/rustfmt@v1
+      - name: clippy
+        run: cargo clippy -- -W clippy::pedantic
