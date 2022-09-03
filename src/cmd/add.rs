@@ -1,5 +1,6 @@
 use std::collections::{HashMap, HashSet};
 use std::ffi::OsString;
+use std::io;
 use std::path::{Path, PathBuf};
 
 use anyhow::Context;
@@ -20,62 +21,74 @@ use anyhow::Context;
 /// let folder = "/home/user/Desktop/graalvm-ee-java17-22.2.0/";
 /// assert_eq!("graalvm-ee-java17-22.2.0", get_instance_name(folder));
 /// ```
-fn get_instance_name(path: impl AsRef<Path>) -> anyhow::Result<OsString> {}
+fn get_instance_name(path: impl AsRef<Path>) -> io::Result<OsString> {
+    todo!()
+}
 
 pub fn add(base: impl AsRef<Path> + Sync, paths: &[PathBuf]) -> anyhow::Result<()> {
     use rayon::prelude::*;
 
-    let instance_names: HashSet<OsString> = paths.iter().map(get_instance_name).collect()?;
+    let names = paths.par_iter().map(get_instance_name);
+    let paths = paths.par_iter().map(dunce::canonicalize);
 
     // remove duplicate inputs
-    let real_paths: HashSet<_> = paths.par_iter().map(dunce::canonicalize).collect()?;
+    let instances: HashMap<_, _> = names
+        .zip(paths)
+        .map(|(name, path)| Ok((name?, path?)))
+        .collect::<io::Result<_>>()?;
 
-    real_paths
-        .zip(file_names)
-        .map(|(path, file_name)| {
-            use std::time::Instant;
+    fn install_instance((name, path): (OsString, PathBuf)) -> anyhow::Result<()> {
+        Ok(())
+    }
 
-            let start = Instant::now();
+    instances.into_par_iter().map(install_instance).collect()
 
-            let (input_path, file_name) =
-                (path?, file_name.context("Failed to get input filename")?);
-            let name = file_name.to_string_lossy();
+    // real_paths
+    //     .zip(file_names)
+    //     .map(|(path, file_name)| {
+    //         use std::time::Instant;
 
-            log::debug!(
-                target: &name,
-                "searching for input directory at {}...",
-                input_path.to_string_lossy()
-            );
-            anyhow::ensure!(input_path.try_exists()?, "Input path does not exist");
+    //         let start = Instant::now();
 
-            let instance: PathBuf = crate::path_to_subdir(&base, file_name);
-            anyhow::ensure!(!instance.try_exists()?, "Instance is already installed");
+    //         let (input_path, file_name) =
+    //             (path?, file_name.context("Failed to get input filename")?);
+    //         let name = file_name.to_string_lossy();
 
-            log::debug!("installing instance {name}");
-            let copy_start = Instant::now();
-            dircpy::CopyBuilder::new(&input_path, &instance)
-                .run()
-                .with_context(|| {
-                    format!(
-                        "Failed to copy instance from {} to {}",
-                        input_path.to_string_lossy(),
-                        instance.to_string_lossy()
-                    )
-                })?;
-            log::trace!(
-                "installed {} in {}ms",
-                instance.to_string_lossy(),
-                copy_start.elapsed().as_millis()
-            );
+    //         log::debug!(
+    //             target: &name,
+    //             "searching for input directory at {}...",
+    //             input_path.to_string_lossy()
+    //         );
+    //         anyhow::ensure!(input_path.try_exists()?, "Input path does not exist");
 
-            if atty::is(atty::Stream::Stdout) {
-                println!(
-                    "successfully installed {name} ({}ms)",
-                    start.elapsed().as_millis(),
-                );
-            }
+    //         let instance: PathBuf = crate::path_to_subdir(&base, file_name);
+    //         anyhow::ensure!(!instance.try_exists()?, "Instance is already installed");
 
-            Ok(())
-        })
-        .collect()
+    //         log::debug!("installing instance {name}");
+    //         let copy_start = Instant::now();
+    //         dircpy::CopyBuilder::new(&input_path, &instance)
+    //             .run()
+    //             .with_context(|| {
+    //                 format!(
+    //                     "Failed to copy instance from {} to {}",
+    //                     input_path.to_string_lossy(),
+    //                     instance.to_string_lossy()
+    //                 )
+    //             })?;
+    //         log::trace!(
+    //             "installed {} in {}ms",
+    //             instance.to_string_lossy(),
+    //             copy_start.elapsed().as_millis()
+    //         );
+
+    //         if atty::is(atty::Stream::Stdout) {
+    //             println!(
+    //                 "successfully installed {name} ({}ms)",
+    //                 start.elapsed().as_millis(),
+    //             );
+    //         }
+
+    //         Ok(())
+    //     })
+    //     .collect()
 }
