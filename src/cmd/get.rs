@@ -5,7 +5,7 @@ use std::path::Path;
 use anyhow::Context;
 
 pub fn get(base: impl AsRef<Path>) -> anyhow::Result<()> {
-    let link = crate::path_to_subdir(base, "current");
+    let link = crate::extend_path(base, ["current"]);
 
     let real_path = link
         .try_exists()?

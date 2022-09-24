@@ -6,7 +6,7 @@ use anyhow::Context;
 pub fn set(base: impl AsRef<Path>, name: &OsString) -> anyhow::Result<()> {
     // check instance exists
     log::debug!("searching for {}", name.to_string_lossy());
-    let instance = crate::path_to_subdir(&base, &name);
+    let instance = crate::extend_path(&base, [&name]);
     anyhow::ensure!(
         instance.try_exists()?,
         "Instance {} does not exist",
@@ -17,7 +17,7 @@ pub fn set(base: impl AsRef<Path>, name: &OsString) -> anyhow::Result<()> {
     log::info!("setting current instance to {}", name.to_string_lossy());
 
     // remove existing symlink at $JIM_DIR/current
-    let link = crate::path_to_subdir(base, "current");
+    let link = crate::extend_path(base, ["current"]);
     if link.try_exists()? {
         log::debug!("symlink exists, removing...");
         symlink::remove_symlink_dir(&link).with_context(|| {

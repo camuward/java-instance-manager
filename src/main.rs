@@ -18,11 +18,15 @@ struct Cli {
     command: Command,
 }
 
-pub(crate) fn path_to_subdir(base: impl AsRef<Path>, ext: impl AsRef<OsStr>) -> PathBuf {
-    base.as_ref()
-        .components()
-        .chain([Component::Normal(ext.as_ref())])
-        .collect()
+pub(crate) fn extend_path<S: AsRef<OsStr>>(
+    parent: impl AsRef<Path>,
+    children: impl AsRef<[S]>,
+) -> PathBuf {
+    let components = children
+        .as_ref()
+        .iter()
+        .map(|child| Component::Normal(child.as_ref()));
+    parent.as_ref().components().chain(components).collect()
 }
 
 fn main() -> anyhow::Result<()> {
@@ -48,7 +52,7 @@ fn main() -> anyhow::Result<()> {
     // get our working directory
     let base = std::env::var_os("JIM_DIR") // first try env
         .map(|s| Path::new(&s).to_owned()) // convert osstring to path
-        .or_else(|| Some(path_to_subdir(dirs::data_dir()?, "jim"))) // .local/share, %APPDATA%, etc.
+        .or_else(|| Some(extend_path(dirs::data_dir()?, ["jim"]))) // .local/share, %APPDATA%, etc.
         .map(dunce::canonicalize) // get full path without unc prefix
         .context("Failed to find data directory (hint: set `JIM_DIR` env var to override)")??;
 

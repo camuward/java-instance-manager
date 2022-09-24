@@ -27,7 +27,7 @@ pub fn add(base: impl AsRef<Path> + Sync, paths: &[PathBuf]) -> anyhow::Result<(
             );
             anyhow::ensure!(input_path.try_exists()?, "Input path does not exist");
 
-            let instance: PathBuf = crate::path_to_subdir(&base, file_name);
+            let instance: PathBuf = crate::extend_path(&base, [file_name]);
             anyhow::ensure!(!instance.try_exists()?, "Instance is already installed");
 
             log::debug!("installing instance {name}");
