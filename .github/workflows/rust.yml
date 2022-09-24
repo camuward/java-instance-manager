@@ -12,7 +12,7 @@ jobs:
   build-ubuntu:
     runs-on: ubuntu-latest
     env:
-      RUSTFLAGS: -Ctarget-cpu=x86-64-v3 -Clto=thin -Cincremental -Clink-arg=-fuse-ld=mold -Cstrip=symbols
+      RUSTFLAGS: -Ctarget-cpu=x86-64-v3 -Clto=thin -Cincremental=build -Clink-arg=-fuse-ld=mold -Cstrip=symbols
     steps:
       - uses: actions/checkout@v3
         
@@ -47,7 +47,7 @@ jobs:
   build-windows:
     runs-on: windows-latest
     env:
-      RUSTFLAGS: -Ctarget-cpu=x86-64-v3 -Clto=thin -Cincremental -Clink-arg=-fuse-ld=lld -Cstrip=symbols
+      RUSTFLAGS: -Ctarget-cpu=x86-64-v3 -Clto=thin -Cincremental=build -Clink-arg=-fuse-ld=lld -Cstrip=symbols
     steps:
       - uses: actions/checkout@v3
 
@@ -79,7 +79,7 @@ jobs:
   build-macos:
     runs-on: macos-latest
     env:
-      RUSTFLAGS: -Ctarget-cpu=x86-64-v3 -Clto=thin -Cincremental -Cstrip=symbols
+      RUSTFLAGS: -Ctarget-cpu=x86-64-v3 -Clto=thin -Cincremental=build -Cstrip=symbols
     steps:
       - uses: actions/checkout@v3
 
