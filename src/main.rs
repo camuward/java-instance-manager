@@ -4,16 +4,15 @@ use std::io::Write;
 use std::path::{Component, Path, PathBuf};
 
 use anyhow::Context;
-use clap::{AppSettings, Parser};
+use clap::Parser;
 
 use crate::cmd::Command;
 
 mod cmd;
 
 #[derive(Debug, Parser)]
-#[clap(author, version, about, long_about = None)]
+#[clap(version, about, long_about = None)]
 #[clap(propagate_version = true)]
-#[clap(global_setting(AppSettings::DisableHelpSubcommand))]
 struct Cli {
     #[clap(subcommand)]
     command: Command,
